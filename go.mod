@@ -1,4 +1,4 @@
-module github.com/flexpool/ethash
+module github.com/flexpool/ethash-go
 
 go 1.14
 
