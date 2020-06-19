@@ -130,7 +130,7 @@ func (l *Light) Verify(block Block) bool {
 	// to prevent DOS attacks.
 	blockNum := block.NumberU64()
 	if blockNum >= epochLength*2048 {
-		log.Debug(fmt.Sprintf("block number %d too high, limit is %d", epochLength*2048))
+		log.Debug(fmt.Sprintf("block number %d too high, limit is %d", epochLength*2048, epochLength*2048))
 		return false
 	}
 
@@ -433,7 +433,7 @@ func GetSeedHash(blockNum uint64) ([]byte, error) {
 
 func makeSeedHash(epoch uint64) (sh common.Hash) {
 	for ; epoch > 0; epoch-- {
-		sh = crypto.Sha3Hash(sh[:])
+		sh = crypto.Keccak256Hash(sh[:])
 	}
 	return sh
 }
