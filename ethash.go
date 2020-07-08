@@ -125,7 +125,7 @@ type Light struct {
 }
 
 // Verify checks whether the block's nonce is valid.
-// Returns returns boolean value and nonce actual target difficulty
+// Returns boolean value and block actual target difficulty
 func (l *Light) Verify(block Block) (bool, *big.Int) {
 	// TODO: do ethash_quick_verify before getCache in order
 	// to prevent DOS attacks.
