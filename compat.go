@@ -23,7 +23,7 @@ import (
 )
 
 type Block interface {
-	Difficulty() *big.Int
+	TargetDifficulty() *big.Int
 	HashNoNonce() common.Hash
 	Nonce() uint64
 	MixDigest() common.Hash

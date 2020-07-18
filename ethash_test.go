@@ -37,25 +37,25 @@ func init() {
 }
 
 type testBlock struct {
-	difficulty  *big.Int
+	target      *big.Int
 	hashNoNonce common.Hash
 	nonce       uint64
 	mixDigest   common.Hash
 	number      uint64
 }
 
-func (b *testBlock) Difficulty() *big.Int     { return b.difficulty }
-func (b *testBlock) HashNoNonce() common.Hash { return b.hashNoNonce }
-func (b *testBlock) Nonce() uint64            { return b.nonce }
-func (b *testBlock) MixDigest() common.Hash   { return b.mixDigest }
-func (b *testBlock) NumberU64() uint64        { return b.number }
+func (b *testBlock) TargetDifficulty() *big.Int { return b.target }
+func (b *testBlock) HashNoNonce() common.Hash   { return b.hashNoNonce }
+func (b *testBlock) Nonce() uint64              { return b.nonce }
+func (b *testBlock) MixDigest() common.Hash     { return b.mixDigest }
+func (b *testBlock) NumberU64() uint64          { return b.number }
 
 var validBlocks = []*testBlock{
 	// from proof of concept nine testnet, epoch 0
 	{
 		number:      22,
 		hashNoNonce: common.HexToHash("372eca2454ead349c3df0ab5d00b0b706b23e49d469387db91811cee0358fc6d"),
-		difficulty:  big.NewInt(132416),
+		target:      new(big.Int).Div(maxUint256, big.NewInt(132416)),
 		nonce:       0x495732e0ed7a801c,
 		mixDigest:   common.HexToHash("2f74cdeb198af0b9abe65d22d372e22fb2d474371774a9583c1cc427a07939f5"),
 	},
@@ -63,7 +63,7 @@ var validBlocks = []*testBlock{
 	{
 		number:      30001,
 		hashNoNonce: common.HexToHash("7e44356ee3441623bc72a683fd3708fdf75e971bbe294f33e539eedad4b92b34"),
-		difficulty:  big.NewInt(1532671),
+		target:      new(big.Int).Div(maxUint256, big.NewInt(1532671)),
 		nonce:       0x318df1c8adef7e5e,
 		mixDigest:   common.HexToHash("144b180aad09ae3c81fb07be92c8e6351b5646dda80e6844ae1b697e55ddde84"),
 	},
@@ -71,7 +71,7 @@ var validBlocks = []*testBlock{
 	{
 		number:      60000,
 		hashNoNonce: common.HexToHash("5fc898f16035bf5ac9c6d9077ae1e3d5fc1ecc3c9fd5bee8bb00e810fdacbaa0"),
-		difficulty:  big.NewInt(2467358),
+		target:      new(big.Int).Div(maxUint256, big.NewInt(2467358)),
 		nonce:       0x50377003e5d830ca,
 		mixDigest:   common.HexToHash("ab546a5b73c452ae86dadd36f0ed83a6745226717d3798832d1b20b489e82063"),
 	},
@@ -80,7 +80,7 @@ var validBlocks = []*testBlock{
 var invalidZeroDiffBlock = testBlock{
 	number:      61440000,
 	hashNoNonce: crypto.Keccak256Hash([]byte("foo")),
-	difficulty:  big.NewInt(0),
+	target:      maxUint256, // 0 Difficulty
 	nonce:       0xcafebabec00000fe,
 	mixDigest:   crypto.Keccak256Hash([]byte("bar")),
 }
@@ -110,7 +110,7 @@ func TestEthashConcurrentVerify(t *testing.T) {
 	}
 	defer os.RemoveAll(eth.Full.Dir)
 
-	block := &testBlock{difficulty: big.NewInt(10)}
+	block := &testBlock{target: new(big.Int).Div(maxUint256, big.NewInt(10))}
 	nonce, md := eth.Search(block, nil, 0)
 	block.nonce = nonce
 	block.mixDigest = common.BytesToHash(md)
@@ -144,7 +144,7 @@ func TestEthashConcurrentSearch(t *testing.T) {
 	}
 
 	var (
-		block   = &testBlock{difficulty: big.NewInt(35000)}
+		block   = &testBlock{target: new(big.Int).Div(maxUint256, big.NewInt(35000))}
 		nsearch = 10
 		wg      = new(sync.WaitGroup)
 		found   = make(chan searchRes)
@@ -186,7 +186,7 @@ func TestEthashSearchAcrossEpoch(t *testing.T) {
 	defer os.RemoveAll(eth.Full.Dir)
 
 	for i := epochLength - 40; i < epochLength+40; i++ {
-		block := &testBlock{number: i, difficulty: big.NewInt(90)}
+		block := &testBlock{number: i, target: new(big.Int).Div(maxUint256, big.NewInt(90))}
 		rand.Read(block.hashNoNonce[:])
 		nonce, md := eth.Search(block, nil, 0)
 		block.nonce = nonce

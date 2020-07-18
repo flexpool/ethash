@@ -135,14 +135,14 @@ func (l *Light) Verify(block Block) (bool, *big.Int) {
 		return false, big.NewInt(0)
 	}
 
-	difficulty := block.Difficulty()
+	target := block.TargetDifficulty()
 	/* Cannot happen if block header diff is validated prior to PoW, but can
 		 happen if PoW is checked first due to parallel PoW checking.
 		 We could check the minimum valid difficulty but for SoC we avoid (duplicating)
 	   Ethereum protocol consensus rules here which are not in scope of Ethash
 	*/
-	if difficulty.Cmp(common.Big0) == 0 {
-		log.Debug("invalid block difficulty")
+	if target.Cmp(common.Big0) == 0 {
+		log.Debug("invalid block target difficulty")
 		return false, big.NewInt(0)
 	}
 
@@ -163,7 +163,6 @@ func (l *Light) Verify(block Block) (bool, *big.Int) {
 	}
 
 	// The actual check.
-	target := new(big.Int).Div(maxUint256, difficulty)
 	return result.Big().Cmp(target) <= 0, result.Big()
 }
 
@@ -337,7 +336,7 @@ func (pow *Full) Search(block Block, stop <-chan struct{}, index int) (nonce uin
 	dag := pow.getDAG(block.NumberU64())
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	diff := block.Difficulty()
+	diff := new(big.Int).Div(maxUint256, block.TargetDifficulty())
 
 	i := int64(0)
 	starti := i
